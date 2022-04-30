@@ -80,3 +80,6 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+configMapGenerator:
+ name: pipeline-api-server-config
+ envs: params.env
