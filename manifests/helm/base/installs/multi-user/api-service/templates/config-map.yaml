@@ -1,0 +1,14 @@
+apiVersion: v1
+data:
+  DEFAULTPIPELINERUNNERSERVICEACCOUNT: {{ .Values.configMapGenerator.DEFAULTPIPELINERUNNERSERVICEACCOUNT }}
+  MULTIUSER: {{ .Values.configMapGenerator.MULTIUSER }}
+  VISUALIZATIONSERVICE_NAME: {{ .Values.configMapGenerator.VISUALIZATIONSERVICE_NAME }}
+  VISUALIZATIONSERVICE_PORT: {{ .Values.configMapGenerator.VISUALIZATIONSERVICE_PORT }}
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configMapGenerator.name }}
+
+
+
+  
+

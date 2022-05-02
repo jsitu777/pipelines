@@ -1,3 +1,6 @@
 configMapGenerator:
  name: pipeline-api-server-config
- envs: params.env
+ MULTIUSER: "true"
+ DEFAULTPIPELINERUNNERSERVICEACCOUNT: default-editor
+ VISUALIZATIONSERVICE_NAME: ml-pipeline-visualizationserver
+ VISUALIZATIONSERVICE_PORT: "8888"
