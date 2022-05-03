@@ -16,7 +16,11 @@ data:
   VISUALIZATIONSERVICE_PORT: {{ .Values.configMapGenerator.VISUALIZATIONSERVICE_PORT }}
 kind: ConfigMap
 metadata:
+  labels:
+    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
   name: {{ .Values.configMapGenerator.name }}
+  namespace: {{ .Values.namespace }}
 
 
 

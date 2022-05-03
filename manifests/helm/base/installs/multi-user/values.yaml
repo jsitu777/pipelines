@@ -1,0 +1,9 @@
+api-service:
+  namespace: kubeflow
+  labels:
+    appKubernetesIoName: kubeflow-pipelines
+
+cache:
+  namespace: kubeflow
+  labels:
+    appKubernetesIoName: kubeflow-pipelines
