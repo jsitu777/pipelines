@@ -2,7 +2,10 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: ml-pipeline-ui
-  namespace: kubeflow
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
 spec:
   selector:
     matchLabels:
@@ -17,7 +20,10 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: ml-pipeline
-  namespace: kubeflow
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
 spec:
   selector:
     matchLabels:
@@ -41,7 +47,10 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: ml-pipeline-visualizationserver
-  namespace: kubeflow
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
 spec:
   selector:
     matchLabels:
@@ -62,7 +71,10 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: service-cache-server
-  namespace: kubeflow
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
 spec:
   selector:
     matchLabels:
@@ -75,6 +87,9 @@ apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
 metadata:
   name: ml-pipeline-ui
+  labels:
+    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
 spec:
   host: ml-pipeline-ui.kubeflow.svc.cluster.local
   trafficPolicy:
@@ -85,6 +100,9 @@ apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
 metadata:
   name: ml-pipeline
+  labels:
+    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
 spec:
   host: ml-pipeline.kubeflow.svc.cluster.local
   trafficPolicy:
@@ -95,6 +113,9 @@ apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
 metadata:
   name: ml-pipeline-visualizationserver
+  labels:
+    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
 spec:
   host: ml-pipeline-visualizationserver.kubeflow.svc.cluster.local
   trafficPolicy:

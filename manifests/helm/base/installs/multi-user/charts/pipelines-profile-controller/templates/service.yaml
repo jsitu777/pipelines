@@ -3,6 +3,8 @@ kind: Service
 metadata:
   labels:
     app: {{ .Values.labels.app }}
+    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
   name: kubeflow-pipelines-profile-controller
   namespace: {{ .Values.namespace}}
 spec:

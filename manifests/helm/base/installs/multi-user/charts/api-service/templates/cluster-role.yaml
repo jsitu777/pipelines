@@ -2,6 +2,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ml-pipeline
+  labels:
+    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
 rules:
 - apiGroups:
   - ""

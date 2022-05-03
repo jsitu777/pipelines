@@ -401,5 +401,7 @@ kind: ConfigMap
 metadata:
   labels:
     app: {{ .Values.labels.app }}
+    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
   name: {{ .Values.configMapGenerator.codeName }}
   namespace: {{ .Values.namespace }}
