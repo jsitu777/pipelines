@@ -1,3 +1,5 @@
+#paste from  multi-user/api-service/deployment-patch.yaml
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:

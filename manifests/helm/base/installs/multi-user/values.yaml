@@ -3,8 +3,6 @@ labels:
   appKubernetesIoName: kubeflow-pipelines
   appKubernetesIoComponent: ml-pipeline
 
-
-
 api-service:
   namespace: kubeflow
   labels:
