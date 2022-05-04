@@ -1,40 +1,27 @@
-#paste from  multi-user/api-service/deployment-patch.yaml
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
     app: ml-pipeline
-    app.kubernetes.io/component: ml-pipeline
-    app.kubernetes.io/name: kubeflow-pipelines
   name: ml-pipeline
-  namespace: kubeflow
 spec:
   selector:
     matchLabels:
       app: ml-pipeline
-      app.kubernetes.io/component: ml-pipeline
-      app.kubernetes.io/name: kubeflow-pipelines
   template:
     metadata:
-      annotations:
-        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
       labels:
         app: ml-pipeline
-        app.kubernetes.io/component: ml-pipeline
-        app.kubernetes.io/name: kubeflow-pipelines
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       containers:
       - env:
-        - name: KUBEFLOW_USERID_HEADER
-          value: kubeflow-userid
-        - name: KUBEFLOW_USERID_PREFIX
-          value: ""
         - name: AUTO_UPDATE_PIPELINE_DEFAULT_VERSION
           valueFrom:
             configMapKeyRef:
-              key: autoUpdatePipelineDefaultVersion
               name: pipeline-install-config
+              key: autoUpdatePipelineDefaultVersion
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
@@ -44,80 +31,77 @@ spec:
         - name: OBJECTSTORECONFIG_BUCKETNAME
           valueFrom:
             configMapKeyRef:
-              key: bucketName
               name: pipeline-install-config
+              key: bucketName
         - name: DBCONFIG_USER
           valueFrom:
             secretKeyRef:
-              key: username
               name: mysql-secret
+              key: username
         - name: DBCONFIG_PASSWORD
           valueFrom:
             secretKeyRef:
-              key: password
               name: mysql-secret
+              key: password
         - name: DBCONFIG_DBNAME
           valueFrom:
             configMapKeyRef:
-              key: pipelineDb
               name: pipeline-install-config
+              key: pipelineDb
         - name: DBCONFIG_HOST
           valueFrom:
             configMapKeyRef:
-              key: dbHost
               name: pipeline-install-config
+              key: dbHost
         - name: DBCONFIG_PORT
           valueFrom:
             configMapKeyRef:
-              key: dbPort
               name: pipeline-install-config
+              key: dbPort
         - name: DBCONFIG_CONMAXLIFETIME
           valueFrom:
             configMapKeyRef:
-              key: ConMaxLifeTime
               name: pipeline-install-config
+              key: ConMaxLifeTime
         - name: OBJECTSTORECONFIG_ACCESSKEY
           valueFrom:
             secretKeyRef:
-              key: accesskey
               name: mlpipeline-minio-artifact
+              key: accesskey
         - name: OBJECTSTORECONFIG_SECRETACCESSKEY
           valueFrom:
             secretKeyRef:
-              key: secretkey
               name: mlpipeline-minio-artifact
-        envFrom:
-        - configMapRef:
-            name: pipeline-api-server-config-f4t72426kt
-        image: gcr.io/ml-pipeline/api-server:2.0.0-alpha.1
+              key: secretkey
+        image: gcr.io/ml-pipeline/api-server:dummy
         imagePullPolicy: IfNotPresent
-        livenessProbe:
-          exec:
-            command:
-            - wget
-            - -q
-            - -S
-            - -O
-            - '-'
-            - http://localhost:8888/apis/v1beta1/healthz
-          initialDelaySeconds: 3
-          periodSeconds: 5
-          timeoutSeconds: 2
         name: ml-pipeline-api-server
         ports:
-        - containerPort: 8888
-          name: http
-        - containerPort: 8887
-          name: grpc
+        - name: http
+          containerPort: 8888
+        - name: grpc
+          containerPort: 8887
         readinessProbe:
           exec:
             command:
-            - wget
-            - -q
-            - -S
-            - -O
-            - '-'
-            - http://localhost:8888/apis/v1beta1/healthz
+              - wget
+              - -q # quiet
+              - -S # show server response
+              - -O
+              - "-" # Redirect output to stdout
+              - http://localhost:8888/apis/v1beta1/healthz
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        livenessProbe:
+          exec:
+            command:
+              - wget
+              - -q # quiet
+              - -S # show server response
+              - -O
+              - "-" # Redirect output to stdout
+              - http://localhost:8888/apis/v1beta1/healthz
           initialDelaySeconds: 3
           periodSeconds: 5
           timeoutSeconds: 2
