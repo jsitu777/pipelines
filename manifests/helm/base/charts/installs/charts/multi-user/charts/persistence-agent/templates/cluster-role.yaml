@@ -6,6 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 rules:
 - apiGroups:
   - argoproj.io

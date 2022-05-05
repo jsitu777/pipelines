@@ -6,6 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 spec:
   selector:
     matchLabels:
@@ -24,6 +25,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 spec:
   selector:
     matchLabels:
@@ -51,6 +53,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 spec:
   selector:
     matchLabels:
@@ -75,6 +78,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 spec:
   selector:
     matchLabels:
@@ -90,6 +94,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 spec:
   host: ml-pipeline-ui.kubeflow.svc.cluster.local
   trafficPolicy:
@@ -103,6 +108,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 spec:
   host: ml-pipeline.kubeflow.svc.cluster.local
   trafficPolicy:
@@ -117,6 +123,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 spec:
   host: ml-pipeline-visualizationserver.kubeflow.svc.cluster.local
   trafficPolicy:

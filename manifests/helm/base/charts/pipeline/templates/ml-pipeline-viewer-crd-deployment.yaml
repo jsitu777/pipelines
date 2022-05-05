@@ -5,6 +5,7 @@ metadata:
     app: ml-pipeline-viewer-crd
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
   name: ml-pipeline-viewer-crd
   namespace: {{ .Values.global.namespace }}
 spec:
@@ -13,12 +14,14 @@ spec:
       app: ml-pipeline-viewer-crd
       app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
       app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+      application-crd-id: {{ .Values.global.labels.applicationCrdId }}
   template:
     metadata:
       labels:
         app: ml-pipeline-viewer-crd
         app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
         app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+        application-crd-id: {{ .Values.global.labels.applicationCrdId }}
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:

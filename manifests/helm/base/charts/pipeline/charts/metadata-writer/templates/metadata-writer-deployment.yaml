@@ -4,6 +4,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
     app: metadata-writer
   name: metadata-writer
   namespace: {{ .Values.global.namespace}}
@@ -17,6 +18,7 @@ spec:
       labels:
         app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
         app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+        application-crd-id: {{ .Values.global.labels.applicationCrdId }}
         app: metadata-writer 
     spec:
       containers:

@@ -10,6 +10,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
     rbac.authorization.kubeflow.org/aggregate-to-kubeflow-edit: "true"
   name: kubeflow-pipelines-edit
 aggregationRule:
@@ -26,6 +27,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
     rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipelines-edit: "true"
     rbac.authorization.kubeflow.org/aggregate-to-kubeflow-view: "true"
   name: kubeflow-pipelines-view
@@ -43,6 +45,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
     rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipelines-edit: "true"
   name: aggregate-to-kubeflow-pipelines-edit
 rules:
@@ -110,6 +113,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
     rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipelines-view: "true"
   name: aggregate-to-kubeflow-pipelines-view
 rules:

@@ -2,8 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: metadata-envoy-deployment
+  namespace: {{ .Values.global.namespace}}
   labels:
     component: metadata-envoy
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 spec:
   replicas: 1
   selector:
@@ -13,6 +15,7 @@ spec:
     metadata:
       labels:
         component: metadata-envoy
+        application-crd-id: {{ .Values.global.labels.applicationCrdId }}
       annotations:
         sidecar.istio.io/inject: "false"
     spec:

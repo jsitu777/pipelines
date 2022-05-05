@@ -3,6 +3,7 @@ global:
   labels:
     appKubernetesIoName: kubeflow-pipelines
     appKubernetesIoComponent: ml-pipeline
+    applicationCrdId: kubeflow-pipelines
 
 image: gcr.io/ml-pipeline/persistenceagent
 tags: 2.0.0-alpha.1

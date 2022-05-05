@@ -1,0 +1,4 @@
+labels:
+  kustomizeComponent: metacontroller
+
+namespace: kubeflow

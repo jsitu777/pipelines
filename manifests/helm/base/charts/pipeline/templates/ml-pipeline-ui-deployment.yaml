@@ -3,15 +3,25 @@ kind: Deployment
 metadata:
   labels:
     app: ml-pipeline-ui
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
   name: ml-pipeline-ui
+  namespace: {{ .Values.global.namespace }}
 spec:
   selector:
     matchLabels:
       app: ml-pipeline-ui
+      app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
   template:
     metadata:
       labels:
         app: ml-pipeline-ui
+        app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+        app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+        application-crd-id: {{ .Values.global.labels.applicationCrdId }}
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:

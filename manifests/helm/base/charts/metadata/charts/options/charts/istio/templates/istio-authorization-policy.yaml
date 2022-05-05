@@ -7,5 +7,6 @@ spec:
   selector:
     matchLabels:
       component: metadata-grpc-server
+      application-crd-id: {{ .Values.global.labels.applicationCrdId }}
   rules:
   - {}

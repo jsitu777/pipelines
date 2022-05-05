@@ -5,6 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
   namespace: {{ .Values.global.namespace }}
 spec:
   ports:
@@ -16,3 +17,4 @@ spec:
     app: ml-pipeline-visualizationserver
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}

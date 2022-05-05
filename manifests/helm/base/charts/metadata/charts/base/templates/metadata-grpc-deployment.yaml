@@ -2,17 +2,21 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: metadata-grpc-deployment
+  namespace: {{ .Values.global.namespace}}
   labels:
     component: metadata-grpc-server
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 spec:
   replicas: 1
   selector:
     matchLabels:
       component: metadata-grpc-server
+      application-crd-id: {{ .Values.global.labels.applicationCrdId }}
   template:
     metadata:
       labels:
         component: metadata-grpc-server
+        application-crd-id: {{ .Values.global.labels.applicationCrdId }}
     spec:
       containers:
       - name: container
