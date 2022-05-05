@@ -1,0 +1,8 @@
+data:
+   defaultPipelineRoot: ""
+
+global:
+  namespace: kubeflow
+  labels:
+    appKubernetesIoName: kubeflow-pipelines
+    appKubernetesIoComponent: ml-pipeline

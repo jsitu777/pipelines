@@ -8,8 +8,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
     rbac.authorization.kubeflow.org/aggregate-to-kubeflow-edit: "true"
   name: kubeflow-pipelines-edit
 aggregationRule:
@@ -24,8 +24,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
     rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipelines-edit: "true"
     rbac.authorization.kubeflow.org/aggregate-to-kubeflow-view: "true"
   name: kubeflow-pipelines-view
@@ -41,8 +41,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
     rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipelines-edit: "true"
   name: aggregate-to-kubeflow-pipelines-edit
 rules:
@@ -108,8 +108,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
     rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipelines-view: "true"
   name: aggregate-to-kubeflow-pipelines-view
 rules:

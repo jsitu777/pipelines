@@ -4,8 +4,8 @@ metadata:
   name: ml-pipeline-ui
   namespace: {{ .Values.namespace }}
   labels:
-    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
 spec:
   selector:
     matchLabels:
@@ -22,8 +22,8 @@ metadata:
   name: ml-pipeline
   namespace: {{ .Values.namespace }}
   labels:
-    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
 spec:
   selector:
     matchLabels:
@@ -49,8 +49,8 @@ metadata:
   name: ml-pipeline-visualizationserver
   namespace: {{ .Values.namespace }}
   labels:
-    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
 spec:
   selector:
     matchLabels:
@@ -73,8 +73,8 @@ metadata:
   name: service-cache-server
   namespace: {{ .Values.namespace }}
   labels:
-    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
 spec:
   selector:
     matchLabels:
@@ -88,8 +88,8 @@ kind: DestinationRule
 metadata:
   name: ml-pipeline-ui
   labels:
-    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
 spec:
   host: ml-pipeline-ui.kubeflow.svc.cluster.local
   trafficPolicy:
@@ -101,8 +101,8 @@ kind: DestinationRule
 metadata:
   name: ml-pipeline
   labels:
-    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
 spec:
   host: ml-pipeline.kubeflow.svc.cluster.local
   trafficPolicy:
@@ -114,8 +114,8 @@ kind: DestinationRule
 metadata:
   name: ml-pipeline-visualizationserver
   labels:
-    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
 spec:
   host: ml-pipeline-visualizationserver.kubeflow.svc.cluster.local
   trafficPolicy:

@@ -1,0 +1,1599 @@
+---
+# Source: multi-user/charts/api-service/templates/config-map.yaml
+#Unable to fetch values from params.env; 
+#Work around by adding a config-map.yaml file and put key-value info from params.env into values.yaml
+#only difference noticed compared with kustomized yaml file is name under metadata
+#name: pipeline-api-server-config-f4t72426kt (kustomized)
+#name: pipeline-api-server-config (helmized)
+
+#related links:
+#https://github.com/ReDev1L/helm-env-file-parsing
+#https://helm.sh/docs/chart_template_guide/accessing_files/#configmap-and-secrets-utility-functions
+
+apiVersion: v1
+data:
+  DEFAULTPIPELINERUNNERSERVICEACCOUNT: default-editor
+  MULTIUSER: true
+  VISUALIZATIONSERVICE_NAME: ml-pipeline-visualizationserver
+  VISUALIZATIONSERVICE_PORT: 8888
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+  name: pipeline-api-server-config
+  namespace:
+---
+# Source: multi-user/charts/pipelines-profile-controller/templates/code-config-map.yaml
+apiVersion: v1
+data:
+  sync.py: |
+    # Copyright 2020-2021 The Kubeflow Authors
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #      http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+    import json
+    import os
+    import base64
+
+
+    def main():
+        settings = get_settings_from_env()
+        server = server_factory(**settings)
+        server.serve_forever()
+
+
+    def get_settings_from_env(controller_port=None,
+                              visualization_server_image=None, frontend_image=None,
+                              visualization_server_tag=None, frontend_tag=None, disable_istio_sidecar=None,
+                              minio_access_key=None, minio_secret_key=None, kfp_default_pipeline_root=None):
+        """
+        Returns a dict of settings from environment variables relevant to the controller
+
+        Environment settings can be overridden by passing them here as arguments.
+
+        Settings are pulled from the all-caps version of the setting name.  The
+        following defaults are used if those environment variables are not set
+        to enable backwards compatibility with previous versions of this script:
+            visualization_server_image: gcr.io/ml-pipeline/visualization-server
+            visualization_server_tag: value of KFP_VERSION environment variable
+            frontend_image: gcr.io/ml-pipeline/frontend
+            frontend_tag: value of KFP_VERSION environment variable
+            disable_istio_sidecar: Required (no default)
+            minio_access_key: Required (no default)
+            minio_secret_key: Required (no default)
+        """
+        settings = dict()
+        settings["controller_port"] = \
+            controller_port or \
+            os.environ.get("CONTROLLER_PORT", "8080")
+
+        settings["visualization_server_image"] = \
+            visualization_server_image or \
+            os.environ.get("VISUALIZATION_SERVER_IMAGE", "gcr.io/ml-pipeline/visualization-server")
+
+        settings["frontend_image"] = \
+            frontend_image or \
+            os.environ.get("FRONTEND_IMAGE", "gcr.io/ml-pipeline/frontend")
+
+        # Look for specific tags for each image first, falling back to
+        # previously used KFP_VERSION environment variable for backwards
+        # compatibility
+        settings["visualization_server_tag"] = \
+            visualization_server_tag or \
+            os.environ.get("VISUALIZATION_SERVER_TAG") or \
+            os.environ["KFP_VERSION"]
+
+        settings["frontend_tag"] = \
+            frontend_tag or \
+            os.environ.get("FRONTEND_TAG") or \
+            os.environ["KFP_VERSION"]
+
+        settings["disable_istio_sidecar"] = \
+            disable_istio_sidecar if disable_istio_sidecar is not None \
+                else os.environ.get("DISABLE_ISTIO_SIDECAR") == "true"
+
+        settings["minio_access_key"] = \
+            minio_access_key or \
+            base64.b64encode(bytes(os.environ.get("MINIO_ACCESS_KEY"), 'utf-8')).decode('utf-8')
+
+        settings["minio_secret_key"] = \
+            minio_secret_key or \
+            base64.b64encode(bytes(os.environ.get("MINIO_SECRET_KEY"), 'utf-8')).decode('utf-8')
+
+        # KFP_DEFAULT_PIPELINE_ROOT is optional
+        settings["kfp_default_pipeline_root"] = \
+            kfp_default_pipeline_root or \
+            os.environ.get("KFP_DEFAULT_PIPELINE_ROOT")
+
+        return settings
+
+
+    def server_factory(visualization_server_image,
+                       visualization_server_tag, frontend_image, frontend_tag,
+                       disable_istio_sidecar, minio_access_key,
+                       minio_secret_key, kfp_default_pipeline_root=None,
+                       url="", controller_port=8080):
+        """
+        Returns an HTTPServer populated with Handler with customized settings
+        """
+        class Controller(BaseHTTPRequestHandler):
+            def sync(self, parent, children):
+                # parent is a namespace
+                namespace = parent.get("metadata", {}).get("name")
+
+                pipeline_enabled = parent.get("metadata", {}).get(
+                    "labels", {}).get("pipelines.kubeflow.org/enabled")
+
+                if pipeline_enabled != "true":
+                    return {"status": {}, "children": []}
+
+                desired_configmap_count = 1
+                desired_resources = []
+                if kfp_default_pipeline_root:
+                    desired_configmap_count = 2
+                    desired_resources += [{
+                        "apiVersion": "v1",
+                        "kind": "ConfigMap",
+                        "metadata": {
+                            "name": "kfp-launcher",
+                            "namespace": namespace,
+                        },
+                        "data": {
+                            "defaultPipelineRoot": kfp_default_pipeline_root,
+                        },
+                    }]
+
+
+                # Compute status based on observed state.
+                desired_status = {
+                    "kubeflow-pipelines-ready":
+                        len(children["Secret.v1"]) == 1 and
+                        len(children["ConfigMap.v1"]) == desired_configmap_count and
+                        len(children["Deployment.apps/v1"]) == 2 and
+                        len(children["Service.v1"]) == 2 and
+                        len(children["DestinationRule.networking.istio.io/v1alpha3"]) == 1 and
+                        len(children["AuthorizationPolicy.security.istio.io/v1beta1"]) == 1 and
+                        "True" or "False"
+                }
+
+                # Generate the desired child object(s).
+                desired_resources += [
+                    {
+                        "apiVersion": "v1",
+                        "kind": "ConfigMap",
+                        "metadata": {
+                            "name": "metadata-grpc-configmap",
+                            "namespace": namespace,
+                        },
+                        "data": {
+                            "METADATA_GRPC_SERVICE_HOST":
+                                "metadata-grpc-service.kubeflow",
+                            "METADATA_GRPC_SERVICE_PORT": "8080",
+                        },
+                    },
+                    # Visualization server related manifests below
+                    {
+                        "apiVersion": "apps/v1",
+                        "kind": "Deployment",
+                        "metadata": {
+                            "labels": {
+                                "app": "ml-pipeline-visualizationserver"
+                            },
+                            "name": "ml-pipeline-visualizationserver",
+                            "namespace": namespace,
+                        },
+                        "spec": {
+                            "selector": {
+                                "matchLabels": {
+                                    "app": "ml-pipeline-visualizationserver"
+                                },
+                            },
+                            "template": {
+                                "metadata": {
+                                    "labels": {
+                                        "app": "ml-pipeline-visualizationserver"
+                                    },
+                                    "annotations": disable_istio_sidecar and {
+                                        "sidecar.istio.io/inject": "false"
+                                    } or {},
+                                },
+                                "spec": {
+                                    "containers": [{
+                                        "image": f"{visualization_server_image}:{visualization_server_tag}",
+                                        "imagePullPolicy":
+                                            "IfNotPresent",
+                                        "name":
+                                            "ml-pipeline-visualizationserver",
+                                        "ports": [{
+                                            "containerPort": 8888
+                                        }],
+                                        "resources": {
+                                            "requests": {
+                                                "cpu": "50m",
+                                                "memory": "200Mi"
+                                            },
+                                            "limits": {
+                                                "cpu": "500m",
+                                                "memory": "1Gi"
+                                            },
+                                        }
+                                    }],
+                                    "serviceAccountName":
+                                        "default-editor",
+                                },
+                            },
+                        },
+                    },
+                    {
+                        "apiVersion": "networking.istio.io/v1alpha3",
+                        "kind": "DestinationRule",
+                        "metadata": {
+                            "name": "ml-pipeline-visualizationserver",
+                            "namespace": namespace,
+                        },
+                        "spec": {
+                            "host": "ml-pipeline-visualizationserver",
+                            "trafficPolicy": {
+                                "tls": {
+                                    "mode": "ISTIO_MUTUAL"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "apiVersion": "security.istio.io/v1beta1",
+                        "kind": "AuthorizationPolicy",
+                        "metadata": {
+                            "name": "ml-pipeline-visualizationserver",
+                            "namespace": namespace,
+                        },
+                        "spec": {
+                            "selector": {
+                                "matchLabels": {
+                                    "app": "ml-pipeline-visualizationserver"
+                                }
+                            },
+                            "rules": [{
+                                "from": [{
+                                    "source": {
+                                        "principals": ["cluster.local/ns/kubeflow/sa/ml-pipeline"]
+                                    }
+                                }]
+                            }]
+                        }
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "kind": "Service",
+                        "metadata": {
+                            "name": "ml-pipeline-visualizationserver",
+                            "namespace": namespace,
+                        },
+                        "spec": {
+                            "ports": [{
+                                "name": "http",
+                                "port": 8888,
+                                "protocol": "TCP",
+                                "targetPort": 8888,
+                            }],
+                            "selector": {
+                                "app": "ml-pipeline-visualizationserver",
+                            },
+                        },
+                    },
+                    # Artifact fetcher related resources below.
+                    {
+                        "apiVersion": "apps/v1",
+                        "kind": "Deployment",
+                        "metadata": {
+                            "labels": {
+                                "app": "ml-pipeline-ui-artifact"
+                            },
+                            "name": "ml-pipeline-ui-artifact",
+                            "namespace": namespace,
+                        },
+                        "spec": {
+                            "selector": {
+                                "matchLabels": {
+                                    "app": "ml-pipeline-ui-artifact"
+                                }
+                            },
+                            "template": {
+                                "metadata": {
+                                    "labels": {
+                                        "app": "ml-pipeline-ui-artifact"
+                                    },
+                                    "annotations": disable_istio_sidecar and {
+                                        "sidecar.istio.io/inject": "false"
+                                    } or {},
+                                },
+                                "spec": {
+                                    "containers": [{
+                                        "name":
+                                            "ml-pipeline-ui-artifact",
+                                        "image": f"{frontend_image}:{frontend_tag}",
+                                        "imagePullPolicy":
+                                            "IfNotPresent",
+                                        "ports": [{
+                                            "containerPort": 3000
+                                        }],
+                                        "env": [
+                                            {
+                                                "name": "MINIO_ACCESS_KEY",
+                                                "valueFrom": {
+                                                    "secretKeyRef": {
+                                                        "key": "accesskey",
+                                                        "name": "mlpipeline-minio-artifact"
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "name": "MINIO_SECRET_KEY",
+                                                "valueFrom": {
+                                                    "secretKeyRef": {
+                                                        "key": "secretkey",
+                                                        "name": "mlpipeline-minio-artifact"
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "resources": {
+                                            "requests": {
+                                                "cpu": "10m",
+                                                "memory": "70Mi"
+                                            },
+                                            "limits": {
+                                                "cpu": "100m",
+                                                "memory": "500Mi"
+                                            },
+                                        }
+                                    }],
+                                    "serviceAccountName":
+                                        "default-editor"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "kind": "Service",
+                        "metadata": {
+                            "name": "ml-pipeline-ui-artifact",
+                            "namespace": namespace,
+                            "labels": {
+                                "app": "ml-pipeline-ui-artifact"
+                            }
+                        },
+                        "spec": {
+                            "ports": [{
+                                "name":
+                                    "http",  # name is required to let istio understand request protocol
+                                "port": 80,
+                                "protocol": "TCP",
+                                "targetPort": 3000
+                            }],
+                            "selector": {
+                                "app": "ml-pipeline-ui-artifact"
+                            }
+                        }
+                    },
+                ]
+                print('Received request:\n', json.dumps(parent, sort_keys=True))
+                print('Desired resources except secrets:\n', json.dumps(desired_resources, sort_keys=True))
+                # Moved after the print argument because this is sensitive data.
+                desired_resources.append({
+                    "apiVersion": "v1",
+                    "kind": "Secret",
+                    "metadata": {
+                        "name": "mlpipeline-minio-artifact",
+                        "namespace": namespace,
+                    },
+                    "data": {
+                        "accesskey": minio_access_key,
+                        "secretkey": minio_secret_key,
+                    },
+                })
+
+                return {"status": desired_status, "children": desired_resources}
+
+            def do_POST(self):
+                # Serve the sync() function as a JSON webhook.
+                observed = json.loads(
+                    self.rfile.read(int(self.headers.get("content-length"))))
+                desired = self.sync(observed["parent"], observed["children"])
+
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(bytes(json.dumps(desired), 'utf-8'))
+
+        return HTTPServer((url, int(controller_port)), Controller)
+
+
+    if __name__ == "__main__":
+        main()
+kind: ConfigMap
+metadata:
+  labels:
+    app: kubeflow-pipelines-profile-controller
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+  name: kubeflow-pipelines-profile-controller-code
+  namespace: kubeflow
+---
+# Source: multi-user/charts/pipelines-profile-controller/templates/env-config-map.yaml
+#Unable to fetch values from params.env; 
+#Work around by adding a config-map.yaml file and put key-value info from params.env into values.yaml
+#only difference noticed compared with kustomized yaml file is name under metadata
+
+#related links:
+#https://github.com/ReDev1L/helm-env-file-parsing
+#https://helm.sh/docs/chart_template_guide/accessing_files/#configmap-and-secrets-utility-functions
+
+apiVersion: v1
+data:
+  DISABLE_ISTIO_SIDECAR: false
+kind: ConfigMap
+metadata:
+  labels:
+    app: kubeflow-pipelines-profile-controller
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+  name: kubeflow-pipelines-profile-controller-env
+  namespace: kubeflow
+---
+# Source: multi-user/charts/pipelines-ui/templates/config-map.yaml
+apiVersion: v1
+data:
+  viewer-pod-template.json: |-
+    {
+        "spec": {
+            "serviceAccountName": "default-editor"
+        }
+    }
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+  name: ml-pipeline-ui-configmap
+  namespace: kubeflow
+---
+# Source: multi-user/charts/api-service/templates/cluster-role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ml-pipeline
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+  - delete
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - scheduledworkflows
+  verbs:
+  - create
+  - get
+  - list
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+---
+# Source: multi-user/charts/cache/templates/cluster-role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: cache-server
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+  name: kubeflow-pipelines-cache-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+---
+# Source: multi-user/charts/metadata-writer/templates/cluster-role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubeflow-pipelines-metadata-writer-role
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+---
+# Source: multi-user/charts/persistence-agent/templates/cluster-role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ml-pipeline-persistenceagent-role
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+rules:
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - scheduledworkflows
+  verbs:
+  - get
+  - list
+  - watch
+---
+# Source: multi-user/charts/pipelines-ui/templates/cluster-role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: ml-pipeline-ui
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+  name: ml-pipeline-ui
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - "kubeflow.org"
+  resources:
+  - viewers
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - delete
+- apiGroups:
+  - "argoproj.io"
+  resources:
+  - workflows
+  verbs:
+  - get
+  - list
+---
+# Source: multi-user/charts/scheduled-workflow/templates/cluster-role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ml-pipeline-scheduledworkflow-role
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+rules:
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - scheduledworkflows
+  - scheduledworkflows/finalizers
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ''
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+# Source: multi-user/charts/viewer-controller/templates/cluster-role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ml-pipeline-viewer-controller-role
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - deployments
+  - services
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - viewers
+  - viewers/finalizers
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+---
+# Source: multi-user/templates/view-edit-cluster-roles.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+    rbac.authorization.kubeflow.org/aggregate-to-kubeflow-edit: "true"
+  name: kubeflow-pipelines-edit
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipelines-edit: "true"
+rules: []
+---
+# Source: multi-user/templates/view-edit-cluster-roles.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+    rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipelines-edit: "true"
+    rbac.authorization.kubeflow.org/aggregate-to-kubeflow-view: "true"
+  name: kubeflow-pipelines-view
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipelines-view: "true"
+rules: []
+---
+# Source: multi-user/templates/view-edit-cluster-roles.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+    rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipelines-edit: "true"
+  name: aggregate-to-kubeflow-pipelines-edit
+rules:
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - pipelines
+  - pipelines/versions
+  verbs:
+  - create
+  - delete
+  - update
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - experiments
+  verbs:
+  - archive
+  - create
+  - delete
+  - unarchive
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - runs
+  verbs:
+  - archive
+  - create
+  - delete
+  - retry
+  - terminate
+  - unarchive
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - jobs
+  verbs:
+  - create
+  - delete
+  - disable
+  - enable
+- apiGroups:
+  - kubeflow.org
+  verbs:
+  - '*'
+  resources:
+  - scheduledworkflows
+- apiGroups:
+  - argoproj.io
+  verbs:
+  - '*'
+  resources:
+  - cronworkflows
+  - cronworkflows/finalizers
+  - workflows
+  - workflows/finalizers
+  - workfloweventbindings
+  - workflowtemplates
+---
+# Source: multi-user/templates/view-edit-cluster-roles.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+    rbac.authorization.kubeflow.org/aggregate-to-kubeflow-pipelines-view: "true"
+  name: aggregate-to-kubeflow-pipelines-view
+rules:
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - pipelines
+  - pipelines/versions
+  - experiments
+  - runs
+  - jobs
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - viewers
+  verbs:
+  - create
+  - get
+  - delete
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - visualizations
+  verbs:
+  - create
+---
+# Source: multi-user/charts/api-service/templates/cluster-role-binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ml-pipeline
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ml-pipeline
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline
+  namespace:
+---
+# Source: multi-user/charts/cache/templates/cluster-role-binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: cache-server
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+  name: kubeflow-pipelines-cache-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubeflow-pipelines-cache-role
+subjects:
+- kind: ServiceAccount
+  name: kubeflow-pipelines-cache
+---
+# Source: multi-user/charts/metadata-writer/templates/cluster-role-binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubeflow-pipelines-metadata-writer-binding
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubeflow-pipelines-metadata-writer-role
+subjects:
+- kind: ServiceAccount
+  name: kubeflow-pipelines-metadata-writer
+---
+# Source: multi-user/charts/persistence-agent/templates/cluster-role-binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ml-pipeline-persistenceagent-binding
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ml-pipeline-persistenceagent-role
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline-persistenceagent
+---
+# Source: multi-user/charts/pipelines-ui/templates/cluster-role-binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: ml-pipeline-ui
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+  name: ml-pipeline-ui
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ml-pipeline-ui
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline-ui
+---
+# Source: multi-user/charts/scheduled-workflow/templates/cluster-role-binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ml-pipeline-scheduledworkflow-binding
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ml-pipeline-scheduledworkflow-role
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline-scheduledworkflow
+---
+# Source: multi-user/charts/viewer-controller/templates/cluster-role-binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ml-pipeline-viewer-crd-binding
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ml-pipeline-viewer-controller-role
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline-viewer-crd-service-account
+---
+# Source: multi-user/charts/pipelines-profile-controller/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kubeflow-pipelines-profile-controller
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+  name: kubeflow-pipelines-profile-controller
+  namespace: kubeflow
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: kubeflow-pipelines-profile-controller
+---
+# Source: multi-user/charts/api-service/templates/deployment.yaml
+#paste from  multi-user/api-service/deployment-patch.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline
+    app.kubernetes.io/component: ml-pipeline
+    app.kubernetes.io/name: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline
+      app.kubernetes.io/component: ml-pipeline
+      app.kubernetes.io/name: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline
+        app.kubernetes.io/component: ml-pipeline
+        app.kubernetes.io/name: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: KUBEFLOW_USERID_HEADER
+          value: kubeflow-userid
+        - name: KUBEFLOW_USERID_PREFIX
+          value: ""
+        - name: AUTO_UPDATE_PIPELINE_DEFAULT_VERSION
+          valueFrom:
+            configMapKeyRef:
+              key: autoUpdatePipelineDefaultVersion
+              name: pipeline-install-config
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: OBJECTSTORECONFIG_SECURE
+          value: "false"
+        - name: OBJECTSTORECONFIG_BUCKETNAME
+          valueFrom:
+            configMapKeyRef:
+              key: bucketName
+              name: pipeline-install-config
+        - name: DBCONFIG_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: mysql-secret
+        - name: DBCONFIG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: mysql-secret
+        - name: DBCONFIG_DBNAME
+          valueFrom:
+            configMapKeyRef:
+              key: pipelineDb
+              name: pipeline-install-config
+        - name: DBCONFIG_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: dbHost
+              name: pipeline-install-config
+        - name: DBCONFIG_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: dbPort
+              name: pipeline-install-config
+        - name: DBCONFIG_CONMAXLIFETIME
+          valueFrom:
+            configMapKeyRef:
+              key: ConMaxLifeTime
+              name: pipeline-install-config
+        - name: OBJECTSTORECONFIG_ACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              key: accesskey
+              name: mlpipeline-minio-artifact
+        - name: OBJECTSTORECONFIG_SECRETACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              key: secretkey
+              name: mlpipeline-minio-artifact
+        envFrom:
+        - configMapRef:
+            name: pipeline-api-server-config-f4t72426kt
+        image: gcr.io/ml-pipeline/api-server:2.0.0-alpha.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - wget
+            - -q
+            - -S
+            - -O
+            - '-'
+            - http://localhost:8888/apis/v1beta1/healthz
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        name: ml-pipeline-api-server
+        ports:
+        - containerPort: 8888
+          name: http
+        - containerPort: 8887
+          name: grpc
+        readinessProbe:
+          exec:
+            command:
+            - wget
+            - -q
+            - -S
+            - -O
+            - '-'
+            - http://localhost:8888/apis/v1beta1/healthz
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 250m
+            memory: 500Mi
+      serviceAccountName: ml-pipeline
+---
+# Source: multi-user/charts/cache/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache-server
+spec:
+  template:
+    spec:
+      containers:
+      - name: server
+        env:
+          - name: NAMESPACE_TO_WATCH
+            value: ''
+            valueFrom: null
+---
+# Source: multi-user/charts/metadata-writer/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metadata-writer
+spec:
+  template:
+    spec:
+      containers:
+      - name: main
+        env:
+        - name: NAMESPACE_TO_WATCH
+          value: ''
+          valueFrom: null
+---
+# Source: multi-user/charts/persistence-agent/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-pipeline-persistenceagent
+spec:
+  template:
+    spec:
+      containers:
+      - name: ml-pipeline-persistenceagent
+        env:
+        - name: NAMESPACE
+          value: ''
+          valueFrom: null
+---
+# Source: multi-user/charts/pipelines-profile-controller/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kubeflow-pipelines-profile-controller
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+  name: kubeflow-pipelines-profile-controller
+  namespace: kubeflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubeflow-pipelines-profile-controller
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      labels:
+        app: kubeflow-pipelines-profile-controller
+    spec:
+      containers:
+      - command:
+        - python
+        - /hooks/sync.py
+        env:
+        - name: KFP_VERSION
+          valueFrom:
+            configMapKeyRef:
+              key: appVersion
+              name: pipeline-install-config
+        - name: KFP_DEFAULT_PIPELINE_ROOT
+          valueFrom:
+            configMapKeyRef:
+              key: defaultPipelineRoot
+              name: pipeline-install-config
+              optional: true
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: accesskey
+              name: mlpipeline-minio-artifact
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secretkey
+              name: mlpipeline-minio-artifact
+        envFrom:
+        - configMapRef:
+            name: kubeflow-pipelines-profile-controller-env
+        image: python:3.7
+        name: profile-controller
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - mountPath: /hooks
+          name: hooks
+      volumes:
+      - configMap:
+          name: kubeflow-pipelines-profile-controller-code
+        name: hooks
+---
+# Source: multi-user/charts/pipelines-ui/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-ui
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+  name: ml-pipeline-ui
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-ui
+      app.kubernetes.io/component: ml-pipeline
+      app.kubernetes.io/name: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-ui
+        app.kubernetes.io/component: ml-pipeline
+        app.kubernetes.io/name: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: VIEWER_TENSORBOARD_POD_TEMPLATE_SPEC_PATH
+          value: /etc/config/viewer-pod-template.json
+        - name: DEPLOYMENT
+          value: KUBEFLOW
+        - name: ARTIFACTS_SERVICE_PROXY_NAME
+          value: ml-pipeline-ui-artifact
+        - name: ARTIFACTS_SERVICE_PROXY_PORT
+          value: "80"
+        - name: ARTIFACTS_SERVICE_PROXY_ENABLED
+          value: "true"
+        - name: ENABLE_AUTHZ
+          value: "true"
+        - name: KUBEFLOW_USERID_HEADER
+          value: kubeflow-userid
+        - name: KUBEFLOW_USERID_PREFIX
+          value: ""
+        - name: MINIO_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: accesskey
+              name: mlpipeline-minio-artifact
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secretkey
+              name: mlpipeline-minio-artifact
+        - name: ALLOW_CUSTOM_VISUALIZATIONS
+          value: "true"
+        image: gcr.io/ml-pipeline/frontend:2.0.0-alpha.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - wget
+            - -q
+            - -S
+            - -O
+            - '-'
+            - http://localhost:3000/apis/v1beta1/healthz
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        name: ml-pipeline-ui
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+          exec:
+            command:
+            - wget
+            - -q
+            - -S
+            - -O
+            - '-'
+            - http://localhost:3000/apis/v1beta1/healthz
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 10m
+            memory: 70Mi
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+          readOnly: true
+      serviceAccountName: ml-pipeline-ui
+      volumes:
+      - configMap:
+          name: ml-pipeline-ui-configmap
+        name: config-volume
+---
+# Source: multi-user/charts/scheduled-workflow/templates/deployment.yaml
+#copy from deployment-patch.yaml in kustomize
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-pipeline-scheduledworkflow
+spec:
+  template:
+    spec:
+      containers:
+      - name: ml-pipeline-scheduledworkflow
+        env:
+        - name: NAMESPACE
+          value: '' # Empty namespace let viewer controller watch all namespaces
+          valueFrom: null # HACK: https://github.com/kubernetes-sigs/kustomize/issues/2606
+---
+# Source: multi-user/charts/viewer-controller/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-pipeline-viewer-crd
+spec:
+  template:
+    spec:
+      containers:
+      - name: ml-pipeline-viewer-crd
+        env:
+        - name: NAMESPACE
+          value: '' # Empty namespace let viewer controller watch all namespaces
+          valueFrom: null
+---
+# Source: multi-user/templates/view-edit-cluster-roles.yaml
+# NOTE: IMPORTANT
+# We need to separate out actual rules from aggregation rules due to
+# https://github.com/kubernetes/kubernetes/issues/65171
+# TL;DR: We can't have both aggregation and rules in a [Cluster]Role. When that
+# is the case, the rules get ignored.
+---
+# Source: multi-user/templates/istio-authorization-config.yaml
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: ml-pipeline-ui
+  namespace: 
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-ui
+  rules:
+  - from:
+    - source:
+        namespaces:
+        - istio-system
+---
+# Source: multi-user/templates/istio-authorization-config.yaml
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: ml-pipeline
+  namespace: 
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline
+  rules:
+  - from:
+    - source:
+        principals:
+        - cluster.local/ns/kubeflow/sa/ml-pipeline
+        - cluster.local/ns/kubeflow/sa/ml-pipeline-ui
+        - cluster.local/ns/kubeflow/sa/ml-pipeline-persistenceagent
+        - cluster.local/ns/kubeflow/sa/ml-pipeline-scheduledworkflow
+        - cluster.local/ns/kubeflow/sa/ml-pipeline-viewer-crd-service-account
+        - cluster.local/ns/kubeflow/sa/kubeflow-pipelines-cache
+  # For user workloads, which cannot user http headers for authentication
+  - when:
+    - key: request.headers[kubeflow-userid]
+      notValues: ['*']
+---
+# Source: multi-user/templates/istio-authorization-config.yaml
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: ml-pipeline-visualizationserver
+  namespace: 
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-visualizationserver
+  rules:
+  - from:
+    - source:
+        principals:
+        - cluster.local/ns/kubeflow/sa/ml-pipeline
+        - cluster.local/ns/kubeflow/sa/ml-pipeline-ui
+        - cluster.local/ns/kubeflow/sa/ml-pipeline-persistenceagent
+        - cluster.local/ns/kubeflow/sa/ml-pipeline-scheduledworkflow
+        - cluster.local/ns/kubeflow/sa/ml-pipeline-viewer-crd-service-account
+        - cluster.local/ns/kubeflow/sa/kubeflow-pipelines-cache
+---
+# Source: multi-user/templates/istio-authorization-config.yaml
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: service-cache-server
+  namespace: 
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+spec:
+  selector:
+    matchLabels:
+      app: cache-server
+  rules:
+  - {}
+---
+# Source: multi-user/charts/pipelines-profile-controller/templates/composite-controller.yaml
+# Change resyncPeriodSeconds to 1 hour from insane 20 seconds  
+# Only  sync namespaces with pipelines.kubeflow.org/enabled = "true"
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  labels:
+    app: kubeflow-pipelines-profile-controller
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+  name: kubeflow-pipelines-profile-controller
+  namespace: kubeflow
+spec:
+  childResources:
+  - apiVersion: v1
+    resource: secrets
+    updateStrategy:
+      method: OnDelete
+  - apiVersion: v1
+    resource: configmaps
+    updateStrategy:
+      method: OnDelete
+  - apiVersion: apps/v1
+    resource: deployments
+    updateStrategy:
+      method: InPlace
+  - apiVersion: v1
+    resource: services
+    updateStrategy:
+      method: InPlace
+  - apiVersion: networking.istio.io/v1alpha3
+    resource: destinationrules
+    updateStrategy:
+      method: InPlace
+  - apiVersion: security.istio.io/v1beta1
+    resource: authorizationpolicies
+    updateStrategy:
+      method: InPlace
+  generateSelector: true
+  hooks:
+    sync:
+      webhook:
+        url: http://kubeflow-pipelines-profile-controller/sync
+  parentResource:
+    apiVersion: v1
+    resource: namespaces
+  resyncPeriodSeconds: 3600
+---
+# Source: multi-user/templates/istio-authorization-config.yaml
+apiVersion: "networking.istio.io/v1alpha3"
+kind: DestinationRule
+metadata:
+  name: ml-pipeline-ui
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+spec:
+  host: ml-pipeline-ui.kubeflow.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+---
+# Source: multi-user/templates/istio-authorization-config.yaml
+apiVersion: "networking.istio.io/v1alpha3"
+kind: DestinationRule
+metadata:
+  name: ml-pipeline
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+spec:
+  host: ml-pipeline.kubeflow.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+---
+# Source: multi-user/templates/istio-authorization-config.yaml
+apiVersion: "networking.istio.io/v1alpha3"
+kind: DestinationRule
+metadata:
+  name: ml-pipeline-visualizationserver
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+spec:
+  host: ml-pipeline-visualizationserver.kubeflow.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+---
+# Source: multi-user/templates/virtual-service.yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: ml-pipeline-ui
+  labels:
+    app.kubernetes.io/name: kubeflow-pipelines
+    app.kubernetes.io/component: ml-pipeline
+spec:
+  gateways:
+  - kubeflow-gateway
+  hosts:
+  - '*'
+  http:
+  - match:
+    - uri:
+        prefix: /pipeline
+    rewrite:
+      uri: /pipeline
+    route:
+    - destination:
+        host: ml-pipeline-ui.$(kfp-namespace).svc.cluster.local
+        port:
+          number: 80
+    timeout: 300s

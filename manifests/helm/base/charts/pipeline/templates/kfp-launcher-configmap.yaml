@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+data:
+   defaultPipelineRoot: {{ .Values.data.defaulPipelineRoot }}
+metadata:
+  labels:
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+  name: kfp-launcher
+  namespace: {{ .Values.global.namespace}}
+

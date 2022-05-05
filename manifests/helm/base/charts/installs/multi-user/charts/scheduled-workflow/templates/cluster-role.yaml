@@ -3,8 +3,8 @@ kind: ClusterRole
 metadata:
   name: ml-pipeline-scheduledworkflow-role
   labels:
-    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
 rules:
 - apiGroups:
   - argoproj.io

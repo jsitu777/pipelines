@@ -3,8 +3,8 @@ kind: Deployment
 metadata:
   labels:
     app: {{ .Values.labels.app}}
-    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
   name: ml-pipeline-ui
   namespace: kubeflow
 spec:

@@ -13,8 +13,8 @@ kind: ConfigMap
 metadata:
   labels:
     app: {{ .Values.labels.app }}
-    app.kubernetes.io/name: {{ .Values.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.labels.appKubernetesIoComponent }}
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
   name: {{ .Values.configMapGenerator.envName }}
   namespace: {{ .Values.namespace }}
 
