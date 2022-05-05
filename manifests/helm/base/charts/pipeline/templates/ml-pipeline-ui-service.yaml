@@ -3,7 +3,10 @@ kind: Service
 metadata:
   labels:
     app: ml-pipeline-ui
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
   name: ml-pipeline-ui
+  namespace: {{ .Values.global.namespace }}
 spec:
   ports:
   - name: http
@@ -12,3 +15,5 @@ spec:
     targetPort: 3000
   selector:
     app: ml-pipeline-ui
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}

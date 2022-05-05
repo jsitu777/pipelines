@@ -1,0 +1,28 @@
+#Unable to fetch values from params.env; 
+#Work around by adding a config-map.yaml file and put key-value info from params.env into values.yaml
+#only difference noticed compared with kustomized yaml file is name under metadata
+#name: pipeline-api-server-config-f4t72426kt (kustomized)
+#name: pipeline-api-server-config (helmized)
+
+#related links:
+#https://github.com/ReDev1L/helm-env-file-parsing
+#https://helm.sh/docs/chart_template_guide/accessing_files/#configmap-and-secrets-utility-functions
+
+apiVersion: v1
+data:
+  DEFAULTPIPELINERUNNERSERVICEACCOUNT: {{ .Values.configMapGenerator.DEFAULTPIPELINERUNNERSERVICEACCOUNT }}
+  MULTIUSER: {{ .Values.configMapGenerator.MULTIUSER }}
+  VISUALIZATIONSERVICE_NAME: {{ .Values.configMapGenerator.VISUALIZATIONSERVICE_NAME }}
+  VISUALIZATIONSERVICE_PORT: {{ .Values.configMapGenerator.VISUALIZATIONSERVICE_PORT }}
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+  name: {{ .Values.configMapGenerator.name }}
+  namespace: {{ .Values.global.namespace }}
+
+
+
+  
+

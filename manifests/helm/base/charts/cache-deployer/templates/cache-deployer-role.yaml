@@ -3,7 +3,10 @@ kind: Role
 metadata:
   labels:
     app: kubeflow-pipelines-cache-deployer-role
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
   name: kubeflow-pipelines-cache-deployer-role
+  namespace: {{ .Values.global.namespace}}
 rules:
 - apiGroups:
   - ""

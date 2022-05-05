@@ -3,7 +3,10 @@ kind: RoleBinding
 metadata:
   labels:
     app: ml-pipeline
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
   name: ml-pipeline
+  namespace: {{ .Values.global.namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -11,3 +14,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: ml-pipeline
+  namespace: {{ .Values.global.namespace }}

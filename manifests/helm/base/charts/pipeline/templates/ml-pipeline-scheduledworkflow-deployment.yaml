@@ -3,11 +3,16 @@ kind: Deployment
 metadata:
   labels:
     app: ml-pipeline-scheduledworkflow
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+  namespace: {{ .Values.global.namespace }}
   name: ml-pipeline-scheduledworkflow
 spec:
   selector:
     matchLabels:
       app: ml-pipeline-scheduledworkflow
+      app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+      app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
   template:
     metadata:
       labels:

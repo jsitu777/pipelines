@@ -4,9 +4,3 @@ labels:
 images:
   name: gcr.io/ml-pipeline/cache-deployer
   newTag: 2.0.0-alpha.1
-
-global:
-  namespace: kubeflow
-  labels:
-    appKubernetesIoName: kubeflow-pipelines
-    appKubernetesIoComponent: ml-pipeline

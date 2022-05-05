@@ -3,6 +3,9 @@ kind: Role
 metadata:
   labels:
     app: ml-pipeline-ui
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+  namespace: {{ .Values.global.namespace }}
   name: ml-pipeline-ui
 rules:
 - apiGroups:

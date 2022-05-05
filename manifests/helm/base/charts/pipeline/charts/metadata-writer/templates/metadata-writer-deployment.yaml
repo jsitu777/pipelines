@@ -1,9 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: metadata-writer
   labels:
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
     app: metadata-writer
+  name: metadata-writer
+  namespace: {{ .Values.global.namespace}}
 spec:
   replicas: 1
   selector:
@@ -12,7 +15,9 @@ spec:
   template:
     metadata:
       labels:
-        app: metadata-writer
+        app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+        app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+        app: metadata-writer 
     spec:
       containers:
       - name: main

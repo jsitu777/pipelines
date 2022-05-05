@@ -2,7 +2,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
     app: kubeflow-pipelines-metadata-writer-role
+  namespace: {{ .Values.global.namespace}}
   name: kubeflow-pipelines-metadata-writer-role
 rules:
 - apiGroups:
