@@ -1,0 +1,4 @@
+images:
+  name: gcr.io/ml-pipeline/metadata-envoy
+  newTag: 2.0.0-alpha.1
+   
