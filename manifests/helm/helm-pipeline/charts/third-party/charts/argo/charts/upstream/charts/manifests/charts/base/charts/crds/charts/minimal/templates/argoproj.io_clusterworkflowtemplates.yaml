@@ -1,0 +1,40 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata: # kpt-merge: /clusterworkflowtemplates.argoproj.io
+  name: clusterworkflowtemplates.argoproj.io
+  labels:
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
+spec:
+  group: argoproj.io
+  names:
+    kind: ClusterWorkflowTemplate
+    listKind: ClusterWorkflowTemplateList
+    plural: clusterworkflowtemplates
+    shortNames:
+    - clusterwftmpl
+    - cwft
+    singular: clusterworkflowtemplate
+  scope: Cluster
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-map-type: atomic
+            x-kubernetes-preserve-unknown-fields: true
+        required:
+        - metadata
+        - spec
+        type: object
+    served: true
+    storage: true

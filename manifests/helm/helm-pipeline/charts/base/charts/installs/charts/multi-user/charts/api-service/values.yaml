@@ -1,0 +1,15 @@
+app: ml-pipeline-ui
+
+global:
+  namespace: kubeflow
+  labels:
+    appKubernetesIoName: kubeflow-pipelines
+    appKubernetesIoComponent: ml-pipeline
+    applicationCrdId: kubeflow-pipelines
+
+configMapGenerator:
+ name: pipeline-api-server-config-f4t72426kt
+ MULTIUSER: "true"
+ DEFAULTPIPELINERUNNERSERVICEACCOUNT: default-editor
+ VISUALIZATIONSERVICE_NAME: ml-pipeline-visualizationserver
+ VISUALIZATIONSERVICE_PORT: "8888"

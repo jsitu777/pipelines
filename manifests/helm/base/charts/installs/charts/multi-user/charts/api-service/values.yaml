@@ -1,8 +1,0 @@
-app: ml-pipeline-ui
-
-configMapGenerator:
- name: pipeline-api-server-config
- MULTIUSER: "true"
- DEFAULTPIPELINERUNNERSERVICEACCOUNT: default-editor
- VISUALIZATIONSERVICE_NAME: ml-pipeline-visualizationserver
- VISUALIZATIONSERVICE_PORT: "8888"

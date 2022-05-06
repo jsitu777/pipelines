@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: kubeflow-pipelines-metadata-writer
-  labels:
-    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
-    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
-    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
-  namespace: {{ .Values.global.namespace}}

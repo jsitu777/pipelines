@@ -1,0 +1,9 @@
+labels:
+  app: ml-pipeline-ui
+
+global:
+  namespace: kubeflow
+  labels:
+    appKubernetesIoName: kubeflow-pipelines
+    appKubernetesIoComponent: ml-pipeline
+    applicationCrdId: kubeflow-pipelines
