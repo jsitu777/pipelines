@@ -8,3 +8,12 @@ global:
 image: gcr.io/ml-pipeline/persistenceagent
 tags: 2.0.0-alpha.1
 
+
+
+application:
+  kfpAppVersion: 2.0.0-alpha.1
+
+installs:
+  generic:
+    kfpAppVersion: 2.0.0-alpha.1
+

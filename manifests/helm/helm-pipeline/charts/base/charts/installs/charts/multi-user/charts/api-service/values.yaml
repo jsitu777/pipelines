@@ -9,7 +9,7 @@ global:
 
 configMapGenerator:
  name: pipeline-api-server-config-f4t72426kt
- MULTIUSER: "true"
+ MULTIUSER: 'true'
  DEFAULTPIPELINERUNNERSERVICEACCOUNT: default-editor
  VISUALIZATIONSERVICE_NAME: ml-pipeline-visualizationserver
- VISUALIZATIONSERVICE_PORT: "8888"
+ VISUALIZATIONSERVICE_PORT: '8888'

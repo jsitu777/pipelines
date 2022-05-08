@@ -2,3 +2,8 @@ labels:
   kustomizeComponent: metacontroller
 
 namespace: kubeflow
+global:
+  labels:
+    appKubernetesIoName: kubeflow-pipelines
+    appKubernetesIoComponent: ml-pipeline
+    applicationCrdId: kubeflow-pipelines
