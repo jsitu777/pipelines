@@ -2,7 +2,9 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: mysql
-  namespace: kubeflow
+  labels:
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
+  namespace: {{ .Values.global.namespace }}
 spec:
   selector:
     matchLabels:
@@ -24,7 +26,10 @@ spec:
 apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
 metadata:
+  labels:
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
   name: ml-pipeline-mysql
+  namespace: {{ .Values.global.namespace }}
 spec:
   host: mysql.kubeflow.svc.cluster.local
   trafficPolicy:

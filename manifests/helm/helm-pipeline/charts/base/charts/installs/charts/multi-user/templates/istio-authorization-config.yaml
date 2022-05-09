@@ -91,6 +91,7 @@ apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
 metadata:
   name: ml-pipeline-ui
+  namespace: {{ .Values.global.namespace }}
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
@@ -105,6 +106,7 @@ apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
 metadata:
   name: ml-pipeline
+  namespace: {{ .Values.global.namespace }}
   labels:
     app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
     app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}

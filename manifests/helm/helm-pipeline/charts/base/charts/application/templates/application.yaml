@@ -10,28 +10,6 @@ metadata:
     marketplace.cloud.google.com/deploy-info: '{"partner_id": "google-cloud-ai-platform", "product_id": "kubeflow-pipelines", "partner_name": "Google Cloud AI Platform"}'
 spec:
   addOwnerRef: true
-  selector:
-    matchLabels:
-      application-crd-id: kubeflow-pipelines
-  descriptor:
-    version: {{ .Values.kfpAppVersion }}
-    type: Kubeflow Pipelines
-    description: |-
-      Reusable end-to-end ML workflow
-    maintainers:
-      - name: Google Cloud AI Platform
-        url: https://cloud.google.com/ai-platform/
-      - name: Kubeflow Pipelines
-        url: https://github.com/kubeflow/pipelines
-    links:
-      - description: 'Kubeflow Pipelines Documentation'
-        url: https://www.kubeflow.org/docs/pipelines/
-    notes: |-
-      Please go to [Hosted Kubeflow Pipelines Console](https://console.cloud.google.com/ai-platform/pipelines/clusters).
-
-  info:
-    - name: Console
-      value: 'https://console.cloud.google.com/ai-platform/pipelines/clusters'
   componentKinds:
     - group: v1
       kind: ServiceAccount
@@ -47,3 +25,28 @@ spec:
       kind: Secret
     - group: apps/v1
       kind: Deployment
+  descriptor:
+    description: |-
+      Reusable end-to-end ML workflow
+    links:
+      - description: 'Kubeflow Pipelines Documentation'
+        url: https://www.kubeflow.org/docs/pipelines/
+    maintainers:
+      - name: Google Cloud AI Platform
+        url: https://cloud.google.com/ai-platform/
+      - name: Kubeflow Pipelines
+        url: https://github.com/kubeflow/pipelines
+    notes: Please go to [Hosted Kubeflow Pipelines Console](https://console.cloud.google.com/ai-platform/pipelines/clusters).
+    type: Kubeflow Pipelines
+    version: {{ .Values.kfpAppVersion }}
+  info:
+  - name: Console
+    value: 'https://console.cloud.google.com/ai-platform/pipelines/clusters'
+    
+  selector:
+    matchLabels:
+      application-crd-id: {{ .Values.global.labels.applicationCrdId }}
+  
+
+  
+  

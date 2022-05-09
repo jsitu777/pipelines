@@ -1,1 +1,9 @@
 kfpAppName: pipeline
+kfpAppVersion: 2.0.0-alpha.1
+
+global:
+  namespace: kubeflow
+  labels:
+    appKubernetesIoName: kubeflow-pipelines
+    appKubernetesIoComponent: ml-pipeline
+    applicationCrdId: kubeflow-pipelines

@@ -2,6 +2,9 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: minio-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 spec:
   action: ALLOW
   selector:
@@ -23,8 +26,12 @@ apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
 metadata:
   name: ml-pipeline-minio
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 spec:
   host: minio-service.kubeflow.svc.cluster.local
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL
+
