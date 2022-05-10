@@ -1,0 +1,9 @@
+
+spec:
+  type: NodePort
+data:
+  mesh:
+    defaultConfig:
+      tracing: {}
+
+namespace: istio-system
