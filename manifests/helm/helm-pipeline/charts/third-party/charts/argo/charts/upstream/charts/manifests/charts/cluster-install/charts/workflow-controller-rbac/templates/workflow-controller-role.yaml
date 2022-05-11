@@ -2,6 +2,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata: # kpt-merge: /argo-role
   name: argo-role
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 rules:
   - apiGroups:
       - coordination.k8s.io

@@ -12,8 +12,9 @@ spec:
   selector:
     matchLabels:
       app: ml-pipeline-ui
-      app.kubernetes.io/component: ml-pipeline
-      app.kubernetes.io/name: kubeflow-pipelines
+      app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+      app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+      application-crd-id: {{ .Values.global.labels.applicationCrdId }}
   template:
     metadata:
       annotations:
@@ -58,7 +59,7 @@ spec:
               name: mlpipeline-minio-artifact
         - name: ALLOW_CUSTOM_VISUALIZATIONS
           value: "true"
-        image: gcr.io/ml-pipeline/frontend:2.0.0-alpha.1
+        image: "{{ .Values.images.name }}:{{ .Values.images.newTag }}"
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:

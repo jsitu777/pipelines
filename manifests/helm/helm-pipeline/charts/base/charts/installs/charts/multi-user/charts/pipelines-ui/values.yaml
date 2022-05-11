@@ -1,6 +1,11 @@
 labels:
   app: ml-pipeline-ui
 
+images:
+  name: gcr.io/ml-pipeline/frontend
+  newTag: 1.8.1
+
+
 global:
   namespace: kubeflow
   labels:

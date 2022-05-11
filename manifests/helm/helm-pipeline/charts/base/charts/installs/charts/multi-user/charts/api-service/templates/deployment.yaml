@@ -89,7 +89,7 @@ spec:
         envFrom:
         - configMapRef:
             name: pipeline-api-server-config-f4t72426kt
-        image: gcr.io/ml-pipeline/api-server:2.0.0-alpha.1
+        image: "{{ .Values.images.name }}:{{ .Values.images.newTag }}"
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:

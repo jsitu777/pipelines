@@ -1,4 +1,9 @@
-app: ml-pipeline-ui
+app: ml-pipeline
+
+images:
+  name: gcr.io/ml-pipeline/api-server
+  newTag: 1.8.1
+
 
 global:
   namespace: kubeflow
