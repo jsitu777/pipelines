@@ -33,7 +33,7 @@ spec:
             value: "86400"
           - name: NUM_WORKERS
             value: "2"
-        image: "{{ .Values.persistenceAgent.images.name }}:{{ .Values.persistenceAgent.images.newTag }}"
+        image: "{{ .Values.persistenceagent.images.name }}:{{ .Values.persistenceagent.images.newTag }}"
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-persistenceagent
         resources:

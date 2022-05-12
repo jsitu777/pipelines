@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: main
-        image: gcr.io/ml-pipeline/metadata-writer:dummy
+        image: "{{ .Values.images.name }}:{{ .Values.images.newTag }}"
         env:
         - name: NAMESPACE_TO_WATCH
           valueFrom:

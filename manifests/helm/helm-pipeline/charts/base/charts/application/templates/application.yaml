@@ -38,7 +38,7 @@ spec:
         url: https://github.com/kubeflow/pipelines
     notes: Please go to [Hosted Kubeflow Pipelines Console](https://console.cloud.google.com/ai-platform/pipelines/clusters).
     type: Kubeflow Pipelines
-    version: {{ .Values.kfpAppVersion }}
+    version: {{ .Values.global.kfpAppVersion }}
   info:
   - name: Console
     value: 'https://console.cloud.google.com/ai-platform/pipelines/clusters'

@@ -4,3 +4,7 @@ global:
     appKubernetesIoName: kubeflow-pipelines
     appKubernetesIoComponent: ml-pipeline
     applicationCrdId: kubeflow-pipelines
+
+images:
+  name: gcr.io/ml-pipeline/metadata-writer
+  newTag: 1.8.1

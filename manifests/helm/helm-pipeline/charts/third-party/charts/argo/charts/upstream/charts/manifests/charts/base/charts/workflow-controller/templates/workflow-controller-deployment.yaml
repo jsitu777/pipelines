@@ -2,19 +2,24 @@ apiVersion: apps/v1
 kind: Deployment
 metadata: # kpt-merge: /workflow-controller
   name: workflow-controller
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    application-crd-id: {{ .Values.global.labels.appKubernetesIoName }}
 spec:
   selector:
     matchLabels:
       app: workflow-controller
+      application-crd-id: {{ .Values.global.labels.appKubernetesIoName }}
   template:
     metadata:
       labels:
         app: workflow-controller
+        application-crd-id: {{ .Values.global.labels.appKubernetesIoName }}
     spec:
       serviceAccountName: argo
       containers:
         - name: workflow-controller
-          image: quay.io/argoproj/workflow-controller:latest
+          image: "{{ .Values.images.name }}:{{ .Values.images.newTag }}"
           securityContext:
             readOnlyRootFilesystem: true
             runAsNonRoot: true

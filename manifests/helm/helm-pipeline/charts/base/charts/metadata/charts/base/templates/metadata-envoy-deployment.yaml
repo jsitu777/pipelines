@@ -11,6 +11,7 @@ spec:
   selector:
     matchLabels:
       component: metadata-envoy
+      application-crd-id: {{ .Values.global.labels.applicationCrdId }}
   template:
     metadata:
       labels:

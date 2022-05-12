@@ -26,7 +26,7 @@ spec:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       containers:
-      - image: gcr.io/ml-pipeline/visualization-server:dummy
+      - image: "{{ .Values.visulization.images.name }}:{{ .Values.visulization.images.newTag }}"
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-visualizationserver
         ports:

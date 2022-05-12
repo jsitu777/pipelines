@@ -4,6 +4,7 @@ metadata:
   name: meta-controller-cluster-role-binding
   labels:
     kustomize.component: {{ .Values.labels.kustomizeComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

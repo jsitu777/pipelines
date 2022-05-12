@@ -1,5 +1,4 @@
 kfpAppName: pipeline
-kfpAppVersion: 2.0.0-alpha.1
 
 global:
   namespace: kubeflow

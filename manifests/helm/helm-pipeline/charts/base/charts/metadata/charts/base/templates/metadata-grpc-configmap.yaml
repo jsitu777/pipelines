@@ -7,5 +7,5 @@ metadata:
     component: metadata-grpc-server
     application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 data:
-  METADATA_GRPC_SERVICE_HOST: "metadata-grpc-service"
+  METADATA_GRPC_SERVICE_HOST: metadata-grpc-service
   METADATA_GRPC_SERVICE_PORT: "8080"

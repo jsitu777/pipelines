@@ -4,6 +4,7 @@ metadata:
   labels:
     app: metacontroller
     kustomize.component: {{ .Values.labels.kustomizeComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
   name: metacontroller
   namespace: {{ .Values.namespace }}
 spec:
@@ -12,12 +13,14 @@ spec:
     matchLabels:
       app: metacontroller
       kustomize.component: {{ .Values.labels.kustomizeComponent }}
+      application-crd-id: {{ .Values.global.labels.applicationCrdId }}
   serviceName: ""
   template:
     metadata:
       labels:
         app: metacontroller
         kustomize.component: {{ .Values.labels.kustomizeComponent }}
+        application-crd-id: {{ .Values.global.labels.applicationCrdId }}
       annotations:
         sidecar.istio.io/inject: "false"
     spec:

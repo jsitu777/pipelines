@@ -26,7 +26,7 @@ spec:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       containers:
-      - image: gcr.io/ml-pipeline/scheduledworkflow:dummy
+      - image: "{{ .Values.scheduledworkflow.images.name}}:{{ .Values.scheduledworkflow.images.newTag }}"
         imagePullPolicy: IfNotPresent
         name: ml-pipeline-scheduledworkflow
         env:

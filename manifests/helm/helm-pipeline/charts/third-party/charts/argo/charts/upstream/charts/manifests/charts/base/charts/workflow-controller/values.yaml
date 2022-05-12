@@ -1,0 +1,3 @@
+images:
+  name: gcr.io/ml-pipeline/workflow-controller
+  newTag: v3.2.3-license-compliance

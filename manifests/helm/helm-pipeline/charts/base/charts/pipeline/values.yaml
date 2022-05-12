@@ -10,15 +10,30 @@ global:
 data:
   defaultPipelineRoot: " "
 
-persistenceAgent:
+persistenceagent:
   images:
     name: gcr.io/ml-pipeline/persistenceagent
-    newTag: 2.0.0-alpha.1
+    newTag: 1.8.1 
 
-viewerCrdController:
+scheduledworkflow:
   images:
+    name: gcr.io/ml-pipeline/scheduledworkflow
+    newTag: 1.8.1 
+
+apiserver:
+  images:
+    name: gcr.io/ml-pipeline/api-server
+    newTag: 1.8.1 
+
+viewerCrd:
+  images: 
     name: gcr.io/ml-pipeline/viewer-crd-controller
-    newTag: 2.0.0-alpha.1    
+    newTag: 1.8.1    
+
+visulization:
+  images: 
+    name: gcr.io/ml-pipeline/visualization-server
+    newTag: 1.8.1  
 
 spec:
   containers:
