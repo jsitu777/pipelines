@@ -2,18 +2,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
+  namespace: {{ .Values.global.namespace }}
   labels:
     app: mysql
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 spec:
   selector:
     matchLabels:
       app: mysql
+      application-crd-id: {{ .Values.global.labels.applicationCrdId }}
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
         app: mysql
+        application-crd-id: {{ .Values.global.labels.applicationCrdId }}
     spec:
       serviceAccountName: mysql
       containers:

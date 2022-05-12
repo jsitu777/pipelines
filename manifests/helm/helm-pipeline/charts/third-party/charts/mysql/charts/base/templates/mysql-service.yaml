@@ -2,6 +2,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mysql
+  labels:
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
+  namespace: {{ .Values.global.namespace }}
 spec:
   ports:
   - # We cannot have name: mysql here, because some requests through istio fail with it.
@@ -10,3 +13,4 @@ spec:
     targetPort: 3306
   selector:
     app: mysql
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}

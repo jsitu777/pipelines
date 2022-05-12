@@ -33,7 +33,7 @@ spec:
             - --configmap
             - workflow-controller-configmap
             - --executor-image
-            - quay.io/argoproj/argoexec:latest
+            - "{{ .Values.spec.containers.args.name }}:{{ .Values.spec.containers.args.tag }}"
           env:
             - name: LEADER_ELECTION_IDENTITY
               valueFrom:
@@ -44,6 +44,10 @@ spec:
             - name: metrics
               containerPort: 9090
             - containerPort: 6060
+          resources:
+            requests:
+              cpu: 100m
+              memory: 500Mi
           livenessProbe:
             httpGet:
               port: 6060

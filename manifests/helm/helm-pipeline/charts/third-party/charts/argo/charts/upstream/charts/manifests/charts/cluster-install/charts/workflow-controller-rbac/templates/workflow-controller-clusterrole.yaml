@@ -2,6 +2,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata: # kpt-merge: /argo-cluster-role
   name: argo-cluster-role
+  labels:
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 rules:
 - apiGroups:
   - ""

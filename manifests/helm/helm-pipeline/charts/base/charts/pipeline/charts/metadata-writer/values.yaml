@@ -8,3 +8,8 @@ global:
 images:
   name: gcr.io/ml-pipeline/metadata-writer
   newTag: 1.8.1
+
+spec:
+  containers:
+    env:
+      value: "" 

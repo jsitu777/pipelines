@@ -3,6 +3,7 @@ kind: ClusterRole
 metadata: # kpt-merge: /argo-aggregate-to-view
   name: argo-aggregate-to-view
   labels:
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
     rbac.authorization.k8s.io/aggregate-to-view: "true"
 rules:
 - apiGroups:
@@ -29,6 +30,7 @@ metadata: # kpt-merge: /argo-aggregate-to-edit
   name: argo-aggregate-to-edit
   labels:
     rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 rules:
 - apiGroups:
   - argoproj.io
@@ -59,6 +61,8 @@ metadata: # kpt-merge: /argo-aggregate-to-admin
   name: argo-aggregate-to-admin
   labels:
     rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
+
 rules:
 - apiGroups:
   - argoproj.io

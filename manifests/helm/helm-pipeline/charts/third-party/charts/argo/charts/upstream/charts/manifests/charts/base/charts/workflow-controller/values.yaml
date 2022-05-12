@@ -1,3 +1,10 @@
 images:
   name: gcr.io/ml-pipeline/workflow-controller
   newTag: v3.2.3-license-compliance
+
+
+spec:
+  containers:
+    args:
+      name: gcr.io/ml-pipeline/argoexec
+      tag: v3.2.3-license-compliance

@@ -2,18 +2,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: minio
+  namespace: {{ .Values.global.namespace }}
   labels:
     app: minio
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 spec:
   selector:
     matchLabels:
       app: minio
+      application-crd-id: {{ .Values.global.labels.applicationCrdId }}
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
         app: minio
+        application-crd-id: {{ .Values.global.labels.applicationCrdId }}
     spec:
       containers:
       - args:

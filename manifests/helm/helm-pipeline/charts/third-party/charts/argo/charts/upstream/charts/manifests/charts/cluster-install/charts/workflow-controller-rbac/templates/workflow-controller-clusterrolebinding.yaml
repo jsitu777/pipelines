@@ -2,6 +2,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata: # kpt-merge: /argo-binding
   name: argo-binding
+  labels:
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
