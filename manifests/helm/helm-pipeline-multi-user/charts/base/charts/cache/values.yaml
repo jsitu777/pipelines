@@ -1,0 +1,15 @@
+labels:
+  app: cache-server
+
+images:
+  name: gcr.io/ml-pipeline/cache-server
+  newTag: 1.8.1
+
+name: cache-server
+
+global:
+  namespace: kubeflow
+  labels:
+    appKubernetesIoName: kubeflow-pipelines
+    appKubernetesIoComponent: ml-pipeline
+    applicationCrdId: kubeflow-pipelines

@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: # kpt-merge: /workflow-controller
+  name: workflow-controller
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    application-crd-id: {{ .Values.global.labels.appKubernetesIoName }}
+spec:
+  selector:
+    matchLabels:
+      app: workflow-controller
+      application-crd-id: {{ .Values.global.labels.appKubernetesIoName }}
+  template:
+    metadata:
+      labels:
+        app: workflow-controller
+        application-crd-id: {{ .Values.global.labels.appKubernetesIoName }}
+    spec:
+      serviceAccountName: argo
+      containers:
+        - name: workflow-controller
+          image: "{{ .Values.images.name }}:{{ .Values.images.newTag }}"
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          command:
+            - workflow-controller
+          args:
+            - --configmap
+            - workflow-controller-configmap
+            - --executor-image
+            - "{{ .Values.spec.containers.args.name }}:{{ .Values.spec.containers.args.tag }}"
+          env:
+            - name: LEADER_ELECTION_IDENTITY
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+          ports:
+            - name: metrics
+              containerPort: 9090
+            - containerPort: 6060
+          resources:
+            requests:
+              cpu: 100m
+              memory: 500Mi
+          livenessProbe:
+            httpGet:
+              port: 6060
+              path: /healthz
+            # Require three failures to tolerate transient errors.
+            failureThreshold: 3
+            initialDelaySeconds: 90
+            periodSeconds: 60
+            timeoutSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+      nodeSelector:
+        kubernetes.io/os: linux

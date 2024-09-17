@@ -1,0 +1,15 @@
+global:
+  kfpAppVersion: 1.8.1
+  namespace: kubeflow
+  labels:
+    appKubernetesIoName: kubeflow-pipelines
+    appKubernetesIoComponent: ml-pipeline
+    applicationCrdId: kubeflow-pipelines
+
+image: gcr.io/ml-pipeline/persistenceagent
+tags: 1.8.1
+
+
+
+
+

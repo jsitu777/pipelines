@@ -1,0 +1,41 @@
+
+
+global:
+  namespace: kubeflow
+  labels:
+    appKubernetesIoName: kubeflow-pipelines
+    appKubernetesIoComponent: ml-pipeline
+    applicationCrdId: kubeflow-pipelines
+
+data:
+  defaultPipelineRoot: " "
+
+persistenceagent:
+  images:
+    name: gcr.io/ml-pipeline/persistenceagent
+    newTag: 1.8.1 
+
+scheduledworkflow:
+  images:
+    name: gcr.io/ml-pipeline/scheduledworkflow
+    newTag: 1.8.1 
+
+apiserver:
+  images:
+    name: gcr.io/ml-pipeline/api-server
+    newTag: 1.8.1 
+
+viewerCrd:
+  images: 
+    name: gcr.io/ml-pipeline/viewer-crd-controller
+    newTag: 1.8.1    
+
+visulization:
+  images: 
+    name: gcr.io/ml-pipeline/visualization-server
+    newTag: 1.8.1  
+
+spec:
+  containers:
+    env:
+      value: ""
