@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-visualizationserver
+    app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+    app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+    application-crd-id: {{ .Values.global.labels.applicationCrdId }}
+  name: ml-pipeline-visualizationserver
+  namespace: {{ .Values.global.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-visualizationserver
+      app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+      app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+      application-crd-id: {{ .Values.global.labels.applicationCrdId }}
+  template:
+    metadata:
+      labels:
+        app: ml-pipeline-visualizationserver
+        app.kubernetes.io/name: {{ .Values.global.labels.appKubernetesIoName }}
+        app.kubernetes.io/component: {{ .Values.global.labels.appKubernetesIoComponent }}
+        application-crd-id: {{ .Values.global.labels.applicationCrdId }}
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    spec:
+      containers:
+      - image: "{{ .Values.visulization.images.name }}:{{ .Values.visulization.images.newTag }}"
+        imagePullPolicy: IfNotPresent
+        name: ml-pipeline-visualizationserver
+        ports:
+        - name: http
+          containerPort: 8888
+        readinessProbe:
+          exec:
+            command:
+              - wget
+              - -q # quiet
+              - -S # show server response
+              - -O
+              - "-" # Redirect output to stdout
+              - http://localhost:8888/
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        livenessProbe:
+          exec:
+            command:
+              - wget
+              - -q # quiet
+              - -S # show server response
+              - -O
+              - "-" # Redirect output to stdout
+              - http://localhost:8888/
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        resources:
+            requests:
+              cpu: 30m
+              memory: 500Mi
+      serviceAccountName: ml-pipeline-visualizationserver

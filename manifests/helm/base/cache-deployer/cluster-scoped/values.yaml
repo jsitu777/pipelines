@@ -1,4 +1,0 @@
-labels:
-  appKubernetesIoName: kubeflow-pipelines
-  appKubernetesIoComponent: ml-pipeline
-namespace: kubeflow

@@ -1,9 +1,0 @@
-configMapGenerator:  
-  codeName: kubeflow-pipelines-profile-controller-code
-  envName: kubeflow-pipelines-profile-controller-env
-  DISABLE_ISTIO_SIDECAR: "false"
-
-labels:
-  app: kubeflow-pipelines-profile-controller
-
-namespace: kubeflow
